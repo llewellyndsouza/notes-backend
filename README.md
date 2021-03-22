@@ -7,3 +7,8 @@ npm start
 
 npm run dev
 - starts and watches the index.js file for changes and restarts the server if necessary
+
+## Heroku
+
+git push heroku master
+heroku logs -t
