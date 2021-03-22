@@ -4,6 +4,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
 app.use(express.static("build"));
 
 const requestLogger = (request, response, next) => {
@@ -35,7 +36,7 @@ let notes = [
   },
 ];
 
-app.get("/", (request, response) => {
+app.get("/hello", (request, response) => {
   response.send("<h1>Hello World!</h1>");
 });
 
