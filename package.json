@@ -8,7 +8,7 @@
     "dev": "nodemon index.js",
     "build:ui": "rm -rf build && cd ../notes-sandbox/ && npm run build && cp -r build ../notes-backend/",
     "deploy": "git push heroku master",
-    "deploy:full":"",
+    "deploy:full":"npm run build:ui && git add . && git commit -m UIbuildFDeploy && git push && npm run deploy",
     "logs:prod": "heroku logs --tail",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
