@@ -1,5 +1,9 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const Note = require('./models/note');
+
+// Express Init
 const app = express();
 
 app.use(cors());
@@ -41,7 +45,9 @@ app.get("/hello", (request, response) => {
 });
 
 app.get("/api/notes", (request, response) => {
-  response.json(notes);
+  Note.find({}).then((notes) => {
+    response.json(notes);
+  });
 });
 
 app.get("/api/notes/:id", (request, response) => {
