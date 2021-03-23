@@ -3,16 +3,16 @@ const express = require("express");
 const cors = require("cors");
 
 // Connect to MongoDB
-const Note = require('./models/note');
+const Note = require("./models/note");
 
 // Express Init
 const app = express();
-
 app.use(cors());
-app.use(express.json());
 
 app.use(express.static("build"));
+app.use(express.json());
 
+// Defining a logger (alternatively use 'heroku')
 const requestLogger = (request, response, next) => {
   console.log("Method:", request.method);
   console.log("Path:  ", request.path);
@@ -20,6 +20,9 @@ const requestLogger = (request, response, next) => {
   console.log("---");
   next();
 };
+
+// For all requests to server
+app.use(requestLogger);
 
 let notes = [
   {
@@ -52,29 +55,48 @@ app.get("/api/notes", (request, response) => {
   });
 });
 
-app.get("/api/notes/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const note = notes.find((note) => note.id === id);
-  if (note) {
-    response.json(note);
-  } else {
-    response.status(404).end();
-  }
+app.get("/api/notes/:id", (request, response, next) => {
+  Note.findById(request.params.id)
+    .then((note) => {
+      if (note) {
+        response.json(note);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((err) => {
+      // console.log(err);
+      //response.status(500).end(); //alternate-1, if youre lazy
+      // response.status(400).send({ error: 'malformatted id' }) //alternate-2, more defined
+      next(err); //alternate-3
+    });
 });
 
-app.delete("/api/notes/:id", (request, response) => {
+app.delete("/api/notes/:id", (request, response, next) => {
   const id = Number(request.params.id);
-  notes = notes.filter((note) => note.id !== id);
-
-  response.status(204).end();
+  Note.findByIdAndDelete(request.params.id)
+    .then((result) => {
+      response.status(204).end();
+    })
+    .catch((err) => next(err));
 });
 
-const generateId = () => {
-  const maxId = notes.length > 0 ? Math.max(...notes.map((n) => n.id)) : 0;
-  return maxId + 1;
-};
+app.put("/api/notes/:id", (request, response, next) => {
+  const body = request.body;
 
-app.post("/api/notes", (request, response) => {
+  const note = {
+    content: body.content,
+    important: body.important,
+  };
+
+  Note.findByIdAndUpdate(request.params.id, note, { new: true })
+    .then((updatedNote) => {
+      response.json(updatedNote);
+    })
+    .catch((err) => next(err));
+});
+
+app.post("/api/notes", (request, response, next) => {
   const body = request.body;
 
   if (!body.content) {
@@ -83,26 +105,43 @@ app.post("/api/notes", (request, response) => {
     });
   }
 
-  const note = {
+  const note = new Note({
     content: body.content,
     important: body.important || false,
     date: new Date(),
-    id: generateId(),
-  };
+  });
 
-  notes = notes.concat(note);
-
-  response.json(note);
+  note
+    .save()
+    .then((savedNote) => {
+      response.json(savedNote);
+    })
+    .catch((err) => next(err));
 });
 
-// For any unknown URLs
-app.use(requestLogger);
-
+// Defining unknown end point handler (bad path)
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
 };
 
+// For all unknown URLs (bad path)
 app.use(unknownEndpoint);
+
+// Defining a error handler
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
+  }
+
+  next(error);
+};
+
+// this has to be the last loaded middleware -error handling
+app.use(errorHandler);
 
 // Listening to port
 const PORT = process.env.PORT;

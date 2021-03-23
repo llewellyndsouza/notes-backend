@@ -1,9 +1,17 @@
-GET  http://localhost:3001/api/notes
+GET  http://localhost:3001/api/notes/605a1ec538834210dd71299d
 ###
 POST  http://localhost:3001/api/notes
 content-type: application/json
 
 {
-    "content": "samples",
+    "content": "lol",
+    "important": true
+}
+### update note
+PUT http://localhost:3001/api/notes/605a1ec538834210dd71299d
+content-type: application/json
+
+{
+    "content": "more updated samples",
     "important": true
 }
