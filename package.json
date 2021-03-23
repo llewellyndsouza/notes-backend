@@ -8,7 +8,7 @@
     "dev": "nodemon index.js",
     "build:ui": "rm -rf build && cd ../notes-sandbox/ && npm run build && cp -r build ../notes-backend/",
     "deploy": "git push heroku master",
-    "deploy:full":"npm run build:ui && git add . && git commit -m UIbuildFDeploy && git push && npm run deploy",
+    "deploy:full": "npm run build:ui && git add . && git commit -m UIbuildFDeploy && git push && npm run deploy",
     "logs:prod": "heroku logs --tail",
     "heroku:off": "heroku ps:scale web=0",
     "heroku:on": "heroku ps:scale web=1",
@@ -19,7 +19,8 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "mongoose": "^5.12.2"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
