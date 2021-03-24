@@ -8,6 +8,9 @@ npm start
 npm run dev
 - starts and watches the index.js file for changes and restarts the server if necessary
 
+npm run deploy:full
+- rebuilds, pushes and runs
+
 ## Heroku
 
 git push heroku master
