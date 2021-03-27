@@ -1,23 +1,17 @@
-const mongoose = require("mongoose");
 const supertest = require("supertest");
+const mongoose = require("mongoose");
 const helper = require("./test_helper");
 const app = require("../app");
-
 const api = supertest(app);
 
-// Before testing
 const Note = require("../models/note");
 
 beforeEach(async () => {
   await Note.deleteMany({});
-
-  const noteObjects = helper.initialNotes.map((note) => new Note(note));
-  const promiseArray = noteObjects.map((note) => note.save());
-  await Promise.all(promiseArray);
+  await Note.insertMany(helper.initialNotes);
 });
 
-// Testing (npm run test -- -t 'notes')
-describe("notes", () => {
+describe("when there is initially some notes saved", () => {
   test("notes are returned as json", async () => {
     await api
       .get("/api/notes")
@@ -27,10 +21,21 @@ describe("notes", () => {
 
   test("all notes are returned", async () => {
     const response = await api.get("/api/notes");
+
     expect(response.body).toHaveLength(helper.initialNotes.length);
   });
 
-  test("a specific note can be viewed", async () => {
+  test("a specific note is within the returned notes", async () => {
+    const response = await api.get("/api/notes");
+
+    const contents = response.body.map((r) => r.content);
+
+    expect(contents).toContain("Browser can execute only Javascript");
+  });
+});
+
+describe("viewing a specific note", () => {
+  test("succeeds with a valid id", async () => {
     const notesAtStart = await helper.notesInDb();
 
     const noteToView = notesAtStart[0];
@@ -39,40 +44,31 @@ describe("notes", () => {
       .get(`/api/notes/${noteToView.id}`)
       .expect(200)
       .expect("Content-Type", /application\/json/);
+
     const processedNoteToView = JSON.parse(JSON.stringify(noteToView));
 
     expect(resultNote.body).toEqual(processedNoteToView);
   });
 
-  test("a note can be deleted", async () => {
-    const notesAtStart = await helper.notesInDb();
-    const noteToDelete = notesAtStart[0];
+  test("fails with statuscode 404 if note does not exist", async () => {
+    const validNonexistingId = await helper.nonExistingId();
 
-    await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
-    const notesAtEnd = await helper.notesInDb();
+    console.log(validNonexistingId);
 
-    expect(notesAtEnd).toHaveLength(helper.initialNotes.length - 1);
-
-    const contents = notesAtEnd.map((r) => r.content);
-
-    expect(contents).not.toContain(noteToDelete.content);
+    await api.get(`/api/notes/${validNonexistingId}`).expect(404);
   });
 
-  test("the first note is about HTTP methods", async () => {
-    const response = await api.get("/api/notes");
-    expect(response.body[0].content).toBe("HTML is easy");
+  test("fails with statuscode 400 id is invalid", async () => {
+    const invalidId = "5a3d5da59070081a82a3445";
+
+    await api.get(`/api/notes/${invalidId}`).expect(400);
   });
+});
 
-  test("a specific note is within the returned notes", async () => {
-    const response = await api.get("/api/notes");
-
-    const contents = response.body.map((r) => r.content);
-    expect(contents).toContain("Browser can execute only Javascript");
-  });
-
-  test("a valid note can be added", async () => {
+describe("addition of a new note", () => {
+  test("succeeds with valid data", async () => {
     const newNote = {
-      content: "async/await simplifies maing async calls",
+      content: "async/await simplifies making async calls",
       important: true,
     };
 
@@ -84,11 +80,12 @@ describe("notes", () => {
 
     const notesAtEnd = await helper.notesInDb();
     expect(notesAtEnd).toHaveLength(helper.initialNotes.length + 1);
+
     const contents = notesAtEnd.map((n) => n.content);
-    expect(contents).toContain("async/await simplifies maing async calls");
+    expect(contents).toContain("async/await simplifies making async calls");
   });
 
-  test("note without content is not added", async () => {
+  test("fails with status code 400 if data invaild", async () => {
     const newNote = {
       important: true,
     };
@@ -101,7 +98,23 @@ describe("notes", () => {
   });
 });
 
-// After testing
+describe("deletion of a note", () => {
+  test("succeeds with status code 204 if id is valid", async () => {
+    const notesAtStart = await helper.notesInDb();
+    const noteToDelete = notesAtStart[0];
+
+    await api.delete(`/api/notes/${noteToDelete.id}`).expect(204);
+
+    const notesAtEnd = await helper.notesInDb();
+
+    expect(notesAtEnd).toHaveLength(helper.initialNotes.length - 1);
+
+    const contents = notesAtEnd.map((r) => r.content);
+
+    expect(contents).not.toContain(noteToDelete.content);
+  });
+});
+
 afterAll(() => {
   mongoose.connection.close();
 });
