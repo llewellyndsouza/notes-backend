@@ -1,13 +1,12 @@
 const config = require("./utils/config");
-const express = require("express");
-const app = express();
-const cors = require("cors");
-const notesRouter = require("./controllers/notes");
-const middleware = require("./utils/middleware");
 const logger = require("./utils/logger");
+const cors = require("cors");
+const express = require("express");
+
+const app = express();
 const mongoose = require("mongoose");
 
-logger.info("connecting to", config.MONGODB_URI);
+logger.info("MongoDB Atlas : connecting to", config.MONGODB_URI);
 
 mongoose
   .connect(config.MONGODB_URI, {
@@ -22,6 +21,9 @@ mongoose
   .catch((error) => {
     logger.error("error connecting to MongoDB:", error.message);
   });
+
+const notesRouter = require("./controllers/notes");
+const middleware = require("./utils/middleware");
 
 app.use(cors());
 app.use(express.static("build"));
