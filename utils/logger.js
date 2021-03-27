@@ -15,3 +15,5 @@ module.exports = {
   info,
   error,
 };
+
+// Does NOT print errors while NODE_ENV=test
