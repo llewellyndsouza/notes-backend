@@ -15,3 +15,17 @@ content-type: application/json
     "content": "more updated samples",
     "important": true
 }
+
+### Users
+GET http://localhost:3001/api/users/
+
+### post users
+POST http://localhost:3001/api/users/
+content-type: application/json
+
+{
+    "notes": [],
+    "username": "root",
+    "name": "Superuser",
+    "password": "salainen"
+}
