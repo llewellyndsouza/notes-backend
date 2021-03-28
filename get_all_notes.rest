@@ -39,3 +39,22 @@ content-type: application/json
     "important": false,
     "userId": "6060a15248c858ad83ae1961"
 }
+
+###login
+POST http://localhost:3001/api/login
+content-type: application/json
+
+{
+    "username": "root2",
+    "password": "salainen2"
+}
+
+### add post with user token
+POST http://localhost:3001/api/notes
+content-type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QyIiwiaWQiOiI2MDYwYjhhMzRlMzdiM2I3MTM0MjAwNmQiLCJpYXQiOjE2MTY5NTQ4NjV9.IZ5YM_pXWKV49TO5BOAvpGChW1XaIm_19E6bVs9SpD0
+
+{
+    "content": "added note with user token",
+    "important": true
+}
