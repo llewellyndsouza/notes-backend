@@ -13,7 +13,8 @@
     "heroku:off": "heroku ps:scale web=0",
     "heroku:on": "heroku ps:scale web=1",
     "debug:chrome": "node --inspect index.js",
-    "test": "cross-env NODE_ENV=test jest --verbose --runInBand"
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand",
+    "start:test": "cross-env NODE_ENV=test node index.js"
   },
   "author": "",
   "license": "ISC",
